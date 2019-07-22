@@ -15,6 +15,7 @@
 #include "Suff.h"
 #include <time.h>
 #include <valarray>
+#include <random>
 
 using namespace std;
 
@@ -455,15 +456,15 @@ void Suff::setInfluence(vector < vector<Literal> >  sp) {
                 //double infl = ((p2/sp[i][j].getProb())-p)/(1-sp[i][j].getProb());
                 //double infl = p1 - p2;
                 double inflPrime = Suff::probMC2(sp_x_t, sp_x_f);
-                cout<</*"Literal influence running time: "<<*/((float)(clock() - t1))/CLOCKS_PER_SEC<</*" seconds"<<*/endl;
-                cout<<sp[i][j].getName()<</*" infl= "<<infl<<*/" inflPrime= "<<inflPrime<<endl;
+                cout<<"Literal influence running time: "<<((float)(clock() - t1))/CLOCKS_PER_SEC<<" seconds"<<endl;
+                cout<<sp[i][j].getName()<</*" infl= "<<infl<<*/" paraInfl= "<<inflPrime<<endl;
                 infl_x[sp[i][j].getName()] = inflPrime;               
 
             }
         }
     }
     t = clock()- t;
-    cout<<"Total influence running time: "<<((float)t)/CLOCKS_PER_SEC<<" seconds"<<endl;
+    //cout<<"Total influence running time: "<<((float)t)/CLOCKS_PER_SEC<<" seconds"<<endl;
     /*
     for(map<string, double>::const_iterator it = infl_x.begin(); it != infl_x.end(); ++it) {
         std::cout << it->first << " " << it->second << "\n";
