@@ -1,12 +1,7 @@
-/* 
- * File:   C_setInfluence.cl
- * Author: chenyuan
- *
- * Created on July 22, 2019
- */
-
-
 #define N 50 // N > index, which is the total number of literals
+#define D 80 // D >= dim1_size
+#define S 900// S >= size
+
 #define BASE 4294967296UL
 //! Represents the state of a particular generator
 typedef struct{ uint x; uint c; } mwc64x_state_t;
@@ -41,9 +36,46 @@ __kernel void setInfluence(const int literals, const int size, const int dim1_si
 	int sum=0;
 	int count=10000;
 	int assignment[N];
-    //or try to get newlambda like original version does
+	int lambdas_t[S];
+	int lambdas_f[S];
+	int dim2_size_t[D];
+	int dim2_size_f[D];
+	int index_t=0;
+	int index_f=0;
+	int index=0;
+	
+	
+    //try to get newlambda like original version does
     if(flag < literals){
 		mwc64x_state_t rng;
+		//new lambda
+		for(int m=0; m<dim1_size; m++){
+			dim2_size_t[m]=dim2_size[m];
+			dim2_size_f[m]=0;
+			int flag_in_mono=0;
+			for(int n=0; n<dim2_size[m]; n++){
+				if(lambdas[index+n]!=flag){
+					lambdas_t[index_t]=lambdas[index+n];
+					index_t ++;					
+				}
+				else{
+					dim2_size_t[m] --;
+					flag_in_mono=1;				
+				}
+				lambdas_f[index_f+n]=lambdas[index+n];
+								
+			}
+			if(flag_in_mono==0){
+				dim2_size_f[m]=dim2_size[m];
+				index_f+=dim2_size[m];
+			}
+			index+=dim2_size[m];
+			
+		}
+		
+		
+		
+		
 		for(int i=0; i<count; i++){
 			for(int j=0; j<size; j++){
 			    float rand=MWC64X_NextUint(&rng)*1.0/BASE;
@@ -53,37 +85,35 @@ __kernel void setInfluence(const int literals, const int size, const int dim1_si
 					assignment[lambdas[j]]=1;				
 			}
 		    //the true case
-		    assignment[flag]=1;
 		    int valuet=0;
-		    int index=0;
+		    index=0;
 		    for(int m=0; m<dim1_size; m++){
 		    	int valueMono=1;
-		    	for(int n=0; n<dim2_size[m]; n++){
-		        	if(assignment[lambdas[index+n]]==0){
+		    	for(int n=0; n<dim2_size_t[m]; n++){
+		        	if(assignment[lambdas_t[index+n]]==0){
 		        		valueMono=0;
-		        		index+=dim2_size[m];
+		        		index+=dim2_size_t[m];
 		        		break;
 		        	}
 		    	}
-		    	if(valueMono==1){
+		    	if(valueMono==1 && dim2_size_t[m]!=0){
 		        	valuet=1;
 		        	break;
 		    	}
 		    }        
 		    //the false case
-		    assignment[flag]=0;
 		    int valuef=0;
 		    index=0;
 		    for(int m=0; m<dim1_size; m++){
 		    	int valueMono=1;
-		    	for(int n=0; n<dim2_size[m]; n++){
-		        	if(assignment[lambdas[index+n]]==0){
+		    	for(int n=0; n<dim2_size_f[m]; n++){
+		        	if(assignment[lambdas_f[index+n]]==0){
 		        		valueMono=0;
-		        		index+=dim2_size[m];
+		        		index+=dim2_size_f[m];
 		        		break;
 		        	}
 		    	}
-		    	if(valueMono==1){
+		    	if(valueMono==1 && dim2_size_f[m]!=0){
 		        	valuef=1;
 		        	break;
 		    	}

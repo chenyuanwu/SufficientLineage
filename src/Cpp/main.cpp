@@ -38,9 +38,40 @@ extern double wtime();   // returns time since some fixed past point (wtime.c)
 using namespace std;
 
 int main(int argc, char** argv) {
-//----------------------------------------------------------------------------
+//-------------------------------------------------------------------------------
+// Create a context and a queue(or queues)
+//-------------------------------------------------------------------------------
+
+    cl_uint deviceIndex = 0;
+    parseArguments(argc, argv, &deviceIndex);
+
+    // Get list of devices
+    vector<cl::Device> devices;
+    unsigned numDevices = getDeviceList(devices);
+
+    // Check device index in range
+    if (deviceIndex >= numDevices)
+    {
+      cout << "Invalid device index (try '--list')\n";
+      return EXIT_FAILURE;
+    }
+
+    cl::Device device = devices[deviceIndex];
+
+    string name;
+    getDeviceName(device, name);
+    cout << "\nUsing OpenCL device: " << name << "\n";
+
+    vector<cl::Device> chosen_device;
+    chosen_device.push_back(device);
+    cl::Context context(chosen_device);
+    cl::CommandQueue queue(context, device);
+    cl::Program program(context, util::loadProgram("../C_setInfluence_v2.cl"), false);
+    
+//-------------------------------------------------------------------------------
 // Prepare the data on the host
-//----------------------------------------------------------------------------
+//-------------------------------------------------------------------------------    
+        
     map<string, double> p;
     /*
     int sa = sizeof(arr_s35)/sizeof(arr_s35[0]);
@@ -107,65 +138,8 @@ int main(int argc, char** argv) {
     cout<<endl;
     
     
-    
-    
-    cl_uint deviceIndex = 0;
-    parseArguments(argc, argv, &deviceIndex);
-
-    // Get list of devices
-    vector<cl::Device> devices;
-    unsigned numDevices = getDeviceList(devices);
-
-    // Check device index in range
-    if (deviceIndex >= numDevices)
-    {
-      cout << "Invalid device index (try '--list')\n";
-      return EXIT_FAILURE;
-    }
-
-    cl::Device device = devices[deviceIndex];
-
-    string name;
-    getDeviceName(device, name);
-    cout << "\nUsing OpenCL device: " << name << "\n";
-
-    vector<cl::Device> chosen_device;
-    chosen_device.push_back(device);
-    cl::Context context(chosen_device);
-    cl::CommandQueue queue(context, device);
-    cl::Program program(context, util::loadProgram("../C_setInfluence.cl"), false);
-
-//-------------------------------------------------------------------------------
-// Create a context and a queue(or queues)
-//-------------------------------------------------------------------------------
 	try{							
-            /*
-		    cl_uint deviceIndex = 0;
-		    parseArguments(argc, argv, &deviceIndex);
-
-		    // Get list of devices
-		    vector<cl::Device> devices;
-		    unsigned numDevices = getDeviceList(devices);
-
-		    // Check device index in range
-		    if (deviceIndex >= numDevices)
-		    {
-		      cout << "Invalid device index (try '--list')\n";
-		      return EXIT_FAILURE;
-		    }
-
-		    cl::Device device = devices[deviceIndex];
-
-		    string name;
-		    getDeviceName(device, name);
-		    cout << "\nUsing OpenCL device: " << name << "\n";
-
-		    vector<cl::Device> chosen_device;
-		    chosen_device.push_back(device);
-		    cl::Context context(chosen_device);
-		    cl::CommandQueue queue(context, device);
-			*/
-
+	
 //--------------------------------------------------------------------------------
 // Sequential queries
 //--------------------------------------------------------------------------------
@@ -195,8 +169,8 @@ int main(int argc, char** argv) {
 
 			cout<<"Influence:" <<endl;
 			clock_t t2 = clock();
-			suff.setInfluence(dnf.getLambda());
-			//suff.setInfluence(suff.getSuffProv());
+			//suff.setInfluence(dnf.getLambda());
+			suff.setInfluence(suff.getSuffProv());
 			t2 = clock() - t2;
 			cout<<"Sequential influence running time: "<<((float) t2)/CLOCKS_PER_SEC<<" seconds"<<endl;
 			Literal x = suff.maxInfluence();
@@ -209,7 +183,7 @@ int main(int argc, char** argv) {
 			vector <float> h_lambdap(0);
 			vector <int> h_dim2_size(0);			
 			vector < vector<Literal> > h_lambda;
-			h_lambda = dnf.getLambda();//suff.getSuffProv();
+			h_lambda = suff.getSuffProv();//dnf.getLambda();
 			int index1 = 0;
 			int size = 0;
 			int dim1_size = h_lambda.size();
@@ -275,7 +249,7 @@ int main(int argc, char** argv) {
 //----------------------------------------------------------------------------------
 // Parallel queries
 //----------------------------------------------------------------------------------
-			//cl::Program program(context, util::loadProgram("../C_setInfluence.cl"), true);
+			//cl::Program program(context, util::loadProgram("../C_setInfluence_v2.cl"), true);
 			program.build(chosen_device);
 			cl::make_kernel<int, int, int, cl::Buffer, cl::Buffer, cl::Buffer, cl::Buffer> setInfluence(program, "setInfluence");
 			clock_t tpara = clock();
