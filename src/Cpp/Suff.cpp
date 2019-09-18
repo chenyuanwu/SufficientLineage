@@ -530,52 +530,28 @@ Literal Suff::findMostInfl(vector<vector<Literal> > sp) {
                 //double infl = ((p2/sp[i][j].getProb())-p)/(1-sp[i][j].getProb());
                 //double infl = p1 - p2;
                 double inflPrime = Suff::probMC2(sp_x_t, sp_x_f);
-                cout<<sp[i][j].getName()<<" inflPrime= "<<inflPrime<<endl;
+                //cout<<sp[i][j].getName()<<" inflPrime= "<<inflPrime<<endl;
                 infl_x[sp[i][j].getName()] = inflPrime;                
             }
         }
     }
     double max = 0.0;
     string name = "";
-    /*
     for(map<string, double>::const_iterator it = infl_x.begin(); it != infl_x.end(); ++it) {
         if(it->second > max && it->first.compare("r1") != 0 && it->first.compare("r2") != 0 && it->first.compare("r3") != 0) {
             max = it->second;
             name = it->first;
         }
     }
-    */
-
-    int s = 0;
-    for(map<string, double>::const_iterator it = infl_x.begin(); it != infl_x.end(); ++it) {
-        if(it->first.compare("r1") != 0 && it->first.compare("r2") != 0 && it->first.compare("r3") != 0) {
-            s++;
-        }
-    }
-    cout<<"s="<<s;
-    std::random_device rd;  //Will be used to obtain a seed for the random number engine
-    std::mt19937 gen(rd()); //Standard mersenne_twister_engine seeded with rd()
-    std::uniform_int_distribution<> dis(1, s);
-    int dice_roll = dis(gen);
-    cout<<" DICE ROLL "<<dice_roll<<" "<<endl;
-    int i = 1;
-    for(map<string, double>::const_iterator it = infl_x.begin(); it != infl_x.end(); ++it) {
-        //if(i == dice_roll) {
-        //   max = it->second;
-        //    name = it->first;
-        //}
-        if(it->first.compare("r1") == 0 || it->first.compare("r2") == 0 || it->first.compare("r3") == 0 ) {
-            continue;
-        } else if(i == dice_roll) {
-            max = it->second;
-            name = it->first;
-        }
-        i++;
-    }
+    
     return Literal(name, max);
-
-    //return Literal(name, max);
 }
+
+
+
+
+
+
 
 vector<Literal> 
 Suff::changedLiterals(vector< vector<Literal> > lambda, double t) {
@@ -585,9 +561,8 @@ Suff::changedLiterals(vector< vector<Literal> > lambda, double t) {
     if(p == t) {
         return v;
     }
-    //find most influential literal    
+    //find most influential literal(or randomly)
     Literal xm = Suff::findMostInfl(lambda);
-    //Randomly pick up a literal
 
     if(p < t) {
         // increase most influential literal
@@ -610,14 +585,11 @@ Suff::changedLiterals(vector< vector<Literal> > lambda, double t) {
         } else {
             cout<<xm.getName()<<" cost="<<(pp-p)/xm.getProb()<<endl;
             vector<Literal> v2 = Suff::changedLiterals(lambda, t);
-            //std::copy(v2.begin(), v2.end(), std::back_inserter(v));
             v.insert(v.end(), v2.begin(), v2.end());
             return v;
         }
     } else {
         // decrease most influential literal
-        cout<<"************"<<endl;
-        Suff::printProv(lambda);
         for(int i = 0; i<lambda.size(); i++) {
             for(int j = 0; j<lambda[i].size(); j++) {
                 if(lambda[i][j].getName() == xm.getName()) {
@@ -627,16 +599,15 @@ Suff::changedLiterals(vector< vector<Literal> > lambda, double t) {
                 }
             }
         }
-        cout<<"+++++++++++++"<<endl;
-        Suff::printProv(lambda);
         double pp = Suff::probMC(lambda);
         cout<<"decreased pp="<<pp<<endl;
         v.push_back(xm);
         if(t-pp >= 0.0) {
             //find delta prob for the most influential literal
-            
+            cout<<xm.getName()<<" cost="<<(t-p)/xm.getProb()<<endl;
             return v;
         } else {
+        	cout<<xm.getName()<<" cost="<<(pp-p)/xm.getProb()<<endl;
             vector<Literal> v2 = Suff::changedLiterals(lambda, t);
             v.insert(v.end(), v2.begin(), v2.end());
             return v;

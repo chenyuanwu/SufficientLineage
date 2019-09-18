@@ -19,7 +19,7 @@ COMMON_DIR = ../../Cpp_common
 
 INC = -I $(COMMON_DIR)
 
-MMUL_OBJS = main.o DNF.o Literal.o Suff.o wtime.o
+MMUL_OBJS = main.o DNF.o Literal.o Suff.o
 EXEC = query
 
 # Check our platform and make sure we define the APPLE variable
@@ -35,9 +35,6 @@ all: $(EXEC)
 
 query: $(MMUL_OBJS)
 	$(CPPC) $(MMUL_OBJS) $(CCFLAGS) $(LIBS) -o $(EXEC)
-
-wtime.o: $(COMMON_DIR)/wtime.c
-	$(CPPC) -c $^ $(CCFLAGS) -o $@
 
 .c.o:
 	$(CPPC) -c $< $(CCFLAGS) -o $@

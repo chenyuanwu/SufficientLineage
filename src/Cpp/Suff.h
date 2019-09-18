@@ -18,6 +18,8 @@
 #include <string>
 #include "DNF.h"
 
+
+
 using namespace std;
 
 class Suff {
